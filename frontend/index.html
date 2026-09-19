@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Test AI - Portal Dosen & Siswa</title>
+  <!-- Google Fonts: Fredoka for gamified headers, Plus Jakarta Sans for clean body text -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti for gamified feedback -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-dosen">
+
+  <!-- TOP APP BAR / HEADER -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-badge">
+        <span class="logo-icon">✨</span>
+        <span class="logo-text">SmartTest <strong>AI</strong></span>
+      </div>
+      <!-- Mode Switcher -->
+      <div class="portal-tabs-container">
+        <button id="btn-portal-dosen" class="portal-tab active" onclick="switchPortal('dosen')">
+          <i data-lucide="graduation-cap"></i> Portal Dosen
+        </button>
+        <button id="btn-portal-siswa" class="portal-tab" onclick="switchPortal('siswa')">
+          <i data-lucide="user"></i> Portal Siswa
+        </button>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Gamified Stats Header -->
+      <div class="gamified-stats">
+        <div class="stat-pill streak-pill" title="Daily Streak!">
+          <span class="flame-icon">🔥</span>
+          <span id="streak-count">5 Hari</span>
+        </div>
+        <div class="stat-pill xp-pill" title="Total XP">
+          <span class="star-icon">⭐</span>
+          <span id="xp-count">1,450 XP</span>
+        </div>
+        <div class="stat-pill gem-pill" title="Gems">
+          <span class="gem-icon">💎</span>
+          <span id="gem-count">120</span>
+        </div>
+      </div>
+
+      <!-- User Profile Dropdown / Avatar -->
+      <div class="user-profile">
+        <div class="avatar-wrapper">
+          <img id="user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=DosenPro" alt="Avatar User">
+          <span class="online-indicator"></span>
+        </div>
+        <div class="user-info desktop-only">
+          <span id="user-name" class="user-name">Dr. Budi Santoso, M.Kom</span>
+          <span id="user-role" class="user-role">Dosen Pengampu</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER WITH BENTO GRID -->
+  <main class="main-wrapper">
+    
+    <!-- SUB HEADER BENTO TOP BANNER -->
+    <section class="bento-hero">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span id="hero-badge-text">Portal Manajemen Ujian AI</span>
+        </div>
+        <h1 id="hero-title" class="hero-title">Halo, Dr. Budi! 👋</h1>
+        <p id="hero-subtitle" class="hero-subtitle">Asisten AI Otti siap membantu Anda merancang soal dan menilai jawaban siswa secara otomatis!</p>
+      </div>
+
+      <!-- OTTI MASCOT DYNAMIC SLOT COMPONENT -->
+      <div class="otti-mascot-card" id="otti-component">
+        <div class="otti-status-badge">
+          <span class="pulse-dot"></span>
+          <span id="otti-status-text">Otti: Ready to Help!</span>
+        </div>
+        
+        <!-- MASCOT VISUAL CONTAINER -->
+        <div class="otti-visual-box">
+          <div class="otti-speech-bubble" id="otti-speech">
+            "Selamat datang! Pilih aksi di bawah untuk mulai buat soal ujian!"
+          </div>
+          <div class="otti-avatar-frame">
+            <!-- SVG / Image Mascot placeholder rendering dynamically -->
+            <div id="otti-mascot-display" class="otti-mascot-state state-classic">
+              <!-- SVG Mascot rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- OTTI CONTROLLER QUICK TEST SWITCHER -->
+        <div class="otti-controls">
+          <span class="controls-label">Uji Status Otti:</span>
+          <div class="otti-btn-group">
+            <button class="otti-state-btn active" onclick="setOttiState('classic')">Standard</button>
+            <button class="otti-state-btn" onclick="setOttiState('buat_soal')">Buat Soal</button>
+            <button class="otti-state-btn" onclick="setOttiState('loading')">Loading</button>
+            <button class="otti-state-btn" onclick="setOttiState('menilai')">Menilai</button>
+            <button class="otti-state-btn" onclick="setOttiState('nilai_bagus')">Nilai 100</button>
+            <button class="otti-state-btn" onclick="setOttiState('nilai_kurang')">Nilai 60</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PORTAL DOSEN VIEW -->
+    <div id="view-dosen" class="portal-view active">
+      <div class="bento-grid">
+
+        <!-- BENTO CARD 1: GENERATOR SOAL AI -->
+        <div class="bento-card card-action card-span-2">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-icon bg-purple">
+                <i data-lucide="wand2"></i>
+              </div>
+              <div>
+                <h3>Buat Ujian / Quiz Baru</h3>
+                <p>Generate soal otomatis pakai AI Gemini & Otti</p>
+              </div>
+            </div>
+            <span class="badge-tag tag-purple">AI Powered</span>
+          </div>
+
+          <form id="form-buat-soal" onsubmit="handleGenerateExam(event)" class="bento-form">
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label>Judul Ujian / Topik</label>
+                <input type="text" id="exam-topic" placeholder="Contoh: Pemrograman Web & Algoritma Data" required value="Struktur Data & Algoritma Tree">
+              </div>
+              <div class="form-group flex-1">
+                <label>Jumlah Soal</label>
+                <select id="exam-count">
+                  <option value="5">5 Soal</option>
+                  <option value="10" selected>10 Soal</option>
+                  <option value="15">15 Soal</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label>Tingkat Kesulitan</label>
+                <div class="segmented-control">
+                  <input type="radio" name="difficulty" id="diff-easy" value="Mudah">
+                  <label for="diff-easy">Mudah</label>
+                  <input type="radio" name="difficulty" id="diff-medium" value="Sedang" checked>
+                  <label for="diff-medium">Sedang</label>
+                  <input type="radio" name="difficulty" id="diff-hard" value="Sulit">
+                  <label for="diff-hard">Sulit</label>
+                </div>
+              </div>
+              <div class="form-group flex-1">
+                <label>Tipe Evaluasi AI</label>
+                <select id="exam-type">
+                  <option value="essay">Essay Autograded with Rubric</option>
+                  <option value="mcq">Pilihan Ganda (Multiple Choice)</option>
+                  <option value="hybrid">Hybrid (Pilihan Ganda + Essay)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-action-bar">
+              <button type="submit" class="btn-duo btn-primary" id="btn-submit-exam">
+                <i data-lucide="sparkles"></i> Generate Ujian dengan Otti
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- BENTO CARD 2: STATISTIK RINGKASAN DOSEN -->
+        <div class="bento-card card-stat">
+          <div class="card-header">
+            <h3>Statistik Ujian</h3>
+            <div class="card-icon bg-green">
+              <i data-lucide="bar-chart-3"></i>
+            </div>
+          </div>
+          <div class="stat-big">
+            <span class="stat-number">88.5</span>
+            <span class="stat-unit">Rata-rata Kelas</span>
+          </div>
+          <div class="stat-progress-bar">
+            <div class="progress-fill" style="width: 88.5%;"></div>
+          </div>
+          <div class="stat-details">
+            <div class="stat-item">
+              <span class="dot green"></span> 142 Ujian Selesai
+            </div>
+            <div class="stat-item">
+              <span class="dot orange"></span> 8 Perlu Review
+            </div>
+          </div>
+        </div>
+
+        <!-- BENTO CARD 3: DAFTAR UJIAN AKTIF DOSEN -->
+        <div class="bento-card card-list card-span-2">
+          <div class="card-header">
+            <div>
+              <h3>Daftar Ujian Aktif</h3>
+              <p>Kelola dan pantau ujian siswa yang sedang berlangsung</p>
+            </div>
+            <button class="btn-duo btn-secondary btn-sm" onclick="showToast('Memperbarui daftar ujian...')">
+              <i data-lucide="refresh-cw"></i> Refresh
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="duo-table">
+              <thead>
+                <tr>
+                  <th>Judul Ujian</th>
+                  <th>Kelas</th>
+                  <th>Peserta</th>
+                  <th>Status Otti AI</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <strong class="table-title">Ujian Tengah Semester Struktur Data</strong>
+                    <div class="table-sub">10 Soal Essay • Batas: 20 Sep 2026</div>
+                  </td>
+                  <td><span class="chip chip-blue">IF-44-01</span></td>
+                  <td><strong>38 / 40</strong> Siswa</td>
+                  <td><span class="chip chip-green"><i data-lucide="check-circle-2"></i> Auto-Graded</span></td>
+                  <td>
+                    <button class="btn-action-ic" title="Lihat Hasil" onclick="simulateReview('UTSUjian')">
+                      <i data-lucide="eye"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong class="table-title">Quiz Kuis 2: Pemrograman Web React</strong>
+                    <div class="table-sub">5 Soal Pilihan Ganda • Batas: Hari Ini</div>
+                  </td>
+                  <td><span class="chip chip-purple">IF-44-02</span></td>
+                  <td><strong>42 / 42</strong> Siswa</td>
+                  <td><span class="chip chip-orange"><i data-lucide="clock"></i> Perlu Review AI</span></td>
+                  <td>
+                    <button class="btn-action-ic" title="Proses Penilaian" onclick="simulateGrading()">
+                      <i data-lucide="cpu"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong class="table-title">Evaluasi Basis Data Lanjut</strong>
+                    <div class="table-sub">15 Soal Hybrid • Batas: 25 Sep 2026</div>
+                  </td>
+                  <td><span class="chip chip-blue">IF-44-03</span></td>
+                  <td><strong>12 / 35</strong> Siswa</td>
+                  <td><span class="chip chip-blue"><i data-lucide="play-circle"></i> Berlangsung</span></td>
+                  <td>
+                    <button class="btn-action-ic" title="Pantau Ujian" onclick="showToast('Membuka live monitor...')">
+                      <i data-lucide="activity"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- BENTO CARD 4: OTTI AI LIVE LOG FEED -->
+        <div class="bento-card card-log">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-icon bg-yellow">
+                <i data-lucide="bot"></i>
+              </div>
+              <h3>Aktivitas AI Otti</h3>
+            </div>
+          </div>
+          <div class="log-stream" id="otti-log-stream">
+            <div class="log-item">
+              <span class="log-time">20:02</span>
+              <p>Otti menyelesaikan penilaian <strong>42 lembar jawaban</strong> UTS Web.</p>
+            </div>
+            <div class="log-item">
+              <span class="log-time">19:45</span>
+              <p>Otti mendeteksi 3 jawaban siswa dengan kemiripan tinggi (Plagiarisme Check).</p>
+            </div>
+            <div class="log-item">
+              <span class="log-time">18:30</span>
+              <p>Otti membuat 10 bank soal baru topik <strong>Graph & Tree</strong>.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PORTAL SISWA VIEW -->
+    <div id="view-siswa" class="portal-view">
+      <div class="bento-grid">
+
+        <!-- SISWA BENTO 1: PROGRESS MAP / QUEST TRACK -->
+        <div class="bento-card card-span-2 card-quest">
+          <div class="card-header">
+            <div>
+              <span class="badge-tag tag-green">Gamified Learning Track</span>
+              <h3>Modul & Ujian Tersedia</h3>
+              <p>Selesaikan quest ujian untuk naik level dan kumpulkan XP!</p>
+            </div>
+            <div class="level-badge">
+              <span class="lvl-title">LEVEL</span>
+              <span class="lvl-num">07</span>
+            </div>
+          </div>
+
+          <!-- DUOLINGO-STYLE PATH STAGES -->
+          <div class="quest-path">
+            <div class="quest-node completed" onclick="startExamModal('Quiz 1: Array & Vector', 100)">
+              <div class="node-circle"><i data-lucide="check"></i></div>
+              <span class="node-label">Quiz 1: Array</span>
+              <span class="node-score">Score: 100 🏆</span>
+            </div>
+            <div class="path-line active"></div>
+            <div class="quest-node active pulse" onclick="startExamModal('UTS: Struktur Data', null)">
+              <div class="node-circle"><i data-lucide="play"></i></div>
+              <span class="node-label">UTS: Struktur Data</span>
+              <span class="node-score badge-active">Kerjakan Sekarang!</span>
+            </div>
+            <div class="path-line"></div>
+            <div class="quest-node locked">
+              <div class="node-circle"><i data-lucide="lock"></i></div>
+              <span class="node-label">Quiz 2: Tree & Graph</span>
+              <span class="node-score">Terkunci</span>
+            </div>
+            <div class="path-line"></div>
+            <div class="quest-node locked">
+              <div class="node-circle"><i data-lucide="trophy"></i></div>
+              <span class="node-label">UAS Final Project</span>
+              <span class="node-score">Terkunci</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SISWA BENTO 2: LEADERBOARD GAMIFIED -->
+        <div class="bento-card card-leaderboard">
+          <div class="card-header">
+            <h3>Leaderboard Kelas</h3>
+            <span class="chip chip-purple">IF-44-01</span>
+          </div>
+
+          <div class="leaderboard-list">
+            <div class="lb-item rank-1">
+              <span class="lb-rank">1</span>
+              <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Anya" class="lb-avatar">
+              <div class="lb-info">
+                <strong>Anya Geraldine</strong>
+                <span>2,450 XP</span>
+              </div>
+              <span class="lb-badge">👑</span>
+            </div>
+
+            <div class="lb-item rank-2">
+              <span class="lb-rank">2</span>
+              <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Rizky" class="lb-avatar">
+              <div class="lb-info">
+                <strong>Rizky Febian</strong>
+                <span>2,100 XP</span>
+              </div>
+              <span class="lb-badge">🥈</span>
+            </div>
+
+            <div class="lb-item rank-you">
+              <span class="lb-rank">3</span>
+              <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Kamu" class="lb-avatar">
+              <div class="lb-info">
+                <strong>Kamu (Siswa)</strong>
+                <span>1,450 XP</span>
+              </div>
+              <span class="lb-badge">🥉</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SISWA BENTO 3: INTERACTIVE EXAM SIMULATOR (SIMULASI PENILAIAN OTTI) -->
+        <div class="bento-card card-span-3 card-exam-area" id="student-exam-card">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-icon bg-blue">
+                <i data-lucide="file-text"></i>
+              </div>
+              <div>
+                <h3 id="active-exam-title">Lembar Ujian Interaktif Siswa</h3>
+                <p>Jawab pertanyaan essay di bawah dan dapatkan evaluasi langsung dari Otti AI!</p>
+              </div>
+            </div>
+            <div class="exam-timer">
+              <i data-lucide="clock"></i> Sisa Waktu: <strong id="timer-text">45:00</strong>
+            </div>
+          </div>
+
+          <div class="exam-content">
+            <div class="question-box">
+              <span class="q-number">Soal 1 dari 5 (Essay)</span>
+              <h4 class="q-text">Jelaskan perbedaan mendasar antara Data Structure Array dan Linked List serta kapan waktu yang tepat untuk menggunakannya!</h4>
+            </div>
+
+            <div class="answer-box">
+              <label for="student-answer-input">Jawaban Kamu:</label>
+              <textarea id="student-answer-input" rows="4" placeholder="Tuliskan jawaban lengkapmu di sini..."></textarea>
+            </div>
+
+            <div class="answer-actions">
+              <button class="btn-duo btn-success" onclick="submitStudentAnswer('perfect')">
+                <i data-lucide="send"></i> Kirim Jawaban Bagus (Simulasi Nilai 100)
+              </button>
+              <button class="btn-duo btn-warning" onclick="submitStudentAnswer('subpar')">
+                <i data-lucide="help-circle"></i> Kirim Jawaban Kurang (Simulasi Nilai 60)
+              </button>
+            </div>
+
+            <!-- RESULT FEEDBACK FROM OTTI AI -->
+            <div id="otti-feedback-box" class="feedback-result hidden">
+              <div class="feedback-header">
+                <div class="score-circle" id="result-score-circle">
+                  <span id="result-score-val">100</span>
+                </div>
+                <div>
+                  <h4 id="result-title">Hasil Evaluasi AI Otti</h4>
+                  <p id="result-subtitle">Analisis otomatis terhadap jawabanmu</p>
+                </div>
+              </div>
+              <div class="feedback-body" id="result-comment">
+                Jawaban kamu sangat detail dan tepat sasaran! Penjelasan mengenai alokasi memori kontigu vs non-kontigu sangat komprehensif.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

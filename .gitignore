@@ -1,0 +1,31 @@
+# Environment & Secrets
+.env
+.env.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env/
+
+# Node & Frontend
+node_modules/
+dist/
+build/
+.npm/
+
+# Testing & Artifacts
+test-results/
+playwright-report/
+
+# IDE & System
+.vscode/
+.idea/
+.gemini/
+.agents/
+.DS_Store
+Thumbs.db
