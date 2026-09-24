@@ -34,7 +34,7 @@ def sanitize_and_parse_json(raw_text: str) -> Optional[Dict[str, Any]]:
         parsed_data = json.loads(clean_text)
         return parsed_data
     except Exception as parse_err:
-        print(f"❌ ERROR Parsing JSON AI Agent: {parse_err}")
+        print(f"[ERROR] Parsing JSON AI Agent: {parse_err}")
         return None
 
 def query_ai_agent(prompt: str, payload: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
@@ -62,19 +62,23 @@ def query_ai_agent(prompt: str, payload: Optional[Dict[str, Any]] = None) -> Opt
     
     for ep in endpoints:
         try:
-            print(f"🔄 Menghubungi AI Agent di: {ep}...")
+            print(f"--> Menghubungi AI Agent di: {ep}...")
             response = requests.post(ep, json=req_body, headers=headers, timeout=15)
             if response.status_code == 200:
-                res_data = response.json()
-                print(f"✅ Respons dari AI Agent diterima!")
-                return res_data
+                try:
+                    res_data = response.json()
+                    print(f"[OK] Respons dari AI Agent diterima!")
+                    return res_data
+                except Exception as json_err:
+                    print(f"[WARN] Response status 200 tapi bukan JSON (Ngrok warning page): {json_err}")
+                    continue
             elif response.status_code == 404:
                 continue
         except Exception as e:
-            print(f"⚠️ Mencoba endpoint {ep} gagal: {e}")
+            print(f"[WARN] Mencoba endpoint {ep} gagal: {e}")
             continue
 
-    print(f"❌ Gagal menghubungi AI Agent di {url}")
+    print(f"[ERROR] Gagal menghubungi AI Agent di {url}")
     return None
 
 def generate_exam_questions(materi_text: str, count: int = 5) -> Optional[Dict[str, Any]]:

@@ -1,11 +1,35 @@
 import math
 from typing import Dict, Any, List, Optional
 from sklearn.metrics.pairwise import cosine_similarity
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, util
 from agent_engine import query_ai_agent
 
 # Inisialisasi model embedding lokal (ringan & cepat)
 similarity_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+try:
+    model_embed = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+except Exception:
+    model_embed = similarity_model
+
+def grade_essay_draft(jawaban_siswa: str, kunci_jawaban: str) -> dict:
+    if not jawaban_siswa or not kunci_jawaban:
+        return {"skor_draft": 1, "similarity": 0.0}
+    emb1 = model_embed.encode(jawaban_siswa, convert_to_tensor=True)
+    emb2 = model_embed.encode(kunci_jawaban, convert_to_tensor=True)
+    similarity = util.cos_sim(emb1, emb2).item()
+
+    if similarity >= 0.85:
+        skor = 4
+    elif similarity >= 0.65:
+        skor = 3
+    elif similarity >= 0.45:
+        skor = 2
+    else:
+        skor = 1
+
+    return {"skor_draft": skor, "similarity": round(similarity, 3)}
+
 
 
 def calculate_exam_duration(questions: List[Dict[str, Any]]) -> int:
@@ -72,7 +96,7 @@ def generate_essay_feedback(
             "reason": f"Nilai draf {estimated_score} dihitung berdasarkan kemiripan makna semantik NLP (skor: {similarity_score:.2f})."
         }
     except Exception as err:
-        print(f"⚠️ Warning Feedback AI Agent: {err}")
+        print(f"[WARN] Warning Feedback AI Agent: {err}")
         estimated_score = round(similarity_score * 100, 2)
         return {
             "score": estimated_score,
@@ -81,7 +105,7 @@ def generate_essay_feedback(
 
 
 if __name__ == "__main__":
-    print("🚀 Menguji Algoritma Waktu & Auto-Grader Esai via AI Agent...")
+    print("=== Menguji Algoritma Waktu & Auto-Grader Esai via AI Agent ===")
 
     sample_questions = [
         {"question_type": "pg", "question_text": "Apa fungsi kloroplas pada fotosintesis?"},
@@ -89,13 +113,13 @@ if __name__ == "__main__":
     ]
 
     duration = calculate_exam_duration(sample_questions)
-    print(f"✅ Estimasi Waktu Ujian: {duration} Menit")
+    print(f"Estimasi Waktu Ujian: {duration} Menit")
 
     rubric_test = "Air berperan sebagai penyedia elektron dan pemecah molekul menghasilkan oksigen."
     answer_test = "Air berfungsi memecah molekul untuk menghasilkan oksigen dan elektron."
 
     sim_score = compute_semantic_similarity(answer_test, rubric_test)
-    print(f"✅ Skor Similarity NLP: {sim_score:.4f}")
+    print(f"Skor Similarity NLP: {sim_score:.4f}")
 
     eval_result = generate_essay_feedback(
         sample_questions[1]["question_text"],
@@ -103,4 +127,4 @@ if __name__ == "__main__":
         answer_test,
         sim_score
     )
-    print(f"✅ Draf Evaluasi AI Agent: {eval_result}")
+    print(f"Draf Evaluasi AI Agent: {eval_result}")
